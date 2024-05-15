@@ -25,9 +25,9 @@ func (app *Config) routes() http.Handler {
 	// set a health-check endpoint
 	mux.Use(middleware.Heartbeat("/ping"))
 
-	mux.Post("/", app.Broker)
+	mux.Post("/v1/handle", app.HandleSubmission)
 
-	mux.Post("/handle", app.HandleSubmission)
+	mux.Post("/", app.Broker)
 
 	mux.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		payload := jsonResponse{
