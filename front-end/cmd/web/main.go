@@ -8,15 +8,22 @@ import (
 	"os"
 )
 
+const defaultPort = "80"
+
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		render(w, "test.page.gohtml")
 	})
 
-	fmt.Print("teste console")
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
+		fmt.Println("port not specified in environment variable.")
+		fmt.Printf("using default port of %s. \n", port)
+		port = defaultPort
+	}
 
-	fmt.Println("Starting front end service on port 80")
-	err := http.ListenAndServe(":80", nil)
+	fmt.Printf("starting front end service on port %s.", port)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
 		log.Panic(err)
 	}
