@@ -9,6 +9,6 @@ to run all microservices run: ``cd project && docker compose up``
 
 set up a proper read.me file
 
-> describe Make and Makefiles for managing services
-> describe each microservices responsibilities
+- describe Make and Makefiles for managing services
+- describe each microservices responsibilities
 
