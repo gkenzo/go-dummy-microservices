@@ -2,10 +2,3 @@ project/db-data/
 **/*.exe
 *.exe
 *.exe~
-authentication-service/authApp
-broker-service/brokerApp
-
-
-*
-!*/
-*.*
