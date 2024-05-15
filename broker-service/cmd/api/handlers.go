@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -33,7 +34,7 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 
 	err := app.readJSON(w, r, &rPayload)
 	if err != nil {
-		app.errorJSON(w, err)
+		app.errorJSON(w, errors.New("error reading body"))
 		return
 	}
 
@@ -47,13 +48,16 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	jsonData, _ := json.MarshalIndent(a, "", "\t")
-	authSvURL, exists := os.LookupEnv("AUTH_SERVICE_URL")
+	baseAuthSvURL, exists := os.LookupEnv("AUTH_SERVICE_URL")
 	if !exists {
 		log.Println("couldn't get authentication service url from env.")
-		authSvURL = "http://authentication-service/authenticate"
-		log.Println("using default env instead: ", authSvURL)
+		baseAuthSvURL = "http://authentication-service/authenticate"
+		log.Println("using default env instead: ", baseAuthSvURL)
+	} else {
+		baseAuthSvURL = fmt.Sprintf("%s/authenticate", baseAuthSvURL)
 	}
-	req, err := http.NewRequest("POST", authSvURL, bytes.NewBuffer(jsonData))
+
+	req, err := http.NewRequest("POST", baseAuthSvURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -90,8 +94,9 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 			Data:    jsonAuthService.Data,
 		})
 
+		return
 	default:
-		app.errorJSON(w, errors.New("error"))
+		app.errorJSON(w, errors.New(fmt.Sprint(res.StatusCode)))
 		log.Println(res.StatusCode, res.Header, res.Body)
 		return
 	}
