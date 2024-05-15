@@ -4,3 +4,8 @@ project/db-data/
 *.exe~
 authentication-service/authApp
 broker-service/brokerApp
+
+
+*
+!*/
+*.*
