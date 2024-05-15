@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -24,6 +25,19 @@ func (app *Config) routes() http.Handler {
 	mux.Use(middleware.Heartbeat("/ping"))
 
 	mux.Post("/authenticate", app.Authenticate)
+
+	mux.Get("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		payload := jsonResponse{
+			Error:   false,
+			Message: "authorization service healthy",
+		}
+
+		out, _ := json.MarshalIndent(payload, "", "\t")
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		w.Write(out)
+	})
 
 	return mux
 }

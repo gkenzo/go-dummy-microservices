@@ -7,9 +7,13 @@ to run all microservices run: ``cd project && docker compose up``
 
 ### TODO:
 
-set up a proper read.me file
+- set up a proper read.me file
+  - describe Make and Makefiles for managing services
+  - describe services responsibilities
+  - generate architectural docs to better illustrate how services communicate
 
-- describe Make and Makefiles for managing services
-- describe each microservices responsibilities
-- run init sql when running pg container
+- run seed sql when running pg containers
+- implement tests of each service
+- generate endpoints docs
 
+- study and validate implementation of load balancing for internal communication

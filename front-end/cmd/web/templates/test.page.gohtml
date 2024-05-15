@@ -39,17 +39,14 @@
         let sent = document.getElementById("payload")
         let received = document.getElementById("received")
 
-        authBtn.addEventListener("click", function() {
 
+        authBtn.addEventListener("click", function() {
             const headers = new Headers();
             headers.append("Content-Type", "application/json")
 
             const payload = {
-                    action: "auth",
-                    auth: {
-                        email: "admin@example.com",
-                        password: "verysecret"
-                    }
+                    email: "admin@example.com",
+                    password: "verysecret"
                 }
 
             const body = {
@@ -58,7 +55,7 @@
                 headers
             }
 
-            fetch("http:\/\/localhost:8080/handle", body)
+            fetch("http:\/\/localhost:1337/auth/authenticate", body)
             .then(res => res.json())
             .then(data => {
                 sent.innerHTML = JSON.stringify(payload, undefined, 4);
@@ -76,11 +73,24 @@
         })
 
         brokerBtn.addEventListener("click", function() {
+           const headers = new Headers();
+            headers.append("Content-Type", "application/json")
+
+            const payload = {
+                    action: "auth",
+                    auth: {
+                        email: "admin@example.com",
+                        password: "verysecret"
+                    }
+                }
+
             const body = {
-                method: "POST"
+                method: "POST",
+                body: JSON.stringify(payload),
+                headers
             }
 
-            fetch("http:\/\/localhost:8080/", body)
+            fetch("http:\/\/localhost:1337/broker/v1/handle", body)
             .then(res => res.json())
             .then(data => {
                 sent.innerHTML = "empty post request";
@@ -96,6 +106,5 @@
             })
 
         })
-
     </script>
 {{end}}

@@ -1,5 +1,11 @@
 version: '3'
 
+
+networks:
+  internal-network:
+    driver: bridge
+
+
 services:
 
   broker-service:
@@ -7,31 +13,46 @@ services:
       context: ./../broker-service
       dockerfile: ./../broker-service/broker-service.dockerfile
     restart: always
-    ports:
-      - "8080:80"
     deploy:
       mode: replicated
       replicas: 1
     environment:
-      - AUTH_SERVICE_URL=http://authentication-service/authenticate
+      - AUTH_SERVICE_URL=http://authentication-service
+    networks:
+      - internal-network
 
   authentication-service:
     build:
       context: ./../authentication-service
       dockerfile: ./../authentication-service/authentication-service.dockerfile
     restart: always
-    ports:
-      - "8081:80"
     deploy:
       mode: replicated
       replicas: 1
     environment:
-      DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
+      DSN: "host=bd-authenticate-postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
+    networks:
+    - internal-network
 
-  postgres:
+  dashboard:
+    build:
+      context: ./../front-end
+      dockerfile: ./../front-end/front-end.dockerfile
+    environment:
+      HTML_TEMPLATES_PATH: ./app/cmd/web/templates
+      PORT: 80
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+    - internal-network
+
+  bd-authenticate-postgres:
     image: 'postgres:14.2'
-    ports:
-      - "5432:5432"
+    # uncoment to expose pg to outside
+    # ports:
+    #   - "5432:5432"
     deploy:
       mode: replicated
       replicas: 1
@@ -41,3 +62,19 @@ services:
       POSTGRES_DB: users
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data
+    networks:
+    - internal-network
+
+  nginx-proxy:
+    container_name: nginx-proxy
+    image: nginx:alpine
+    restart: on-failure
+    volumes:
+      - ../nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 1337:8080
+    depends_on:
+      - broker-service
+      - authentication-service
+    networks:
+      - internal-network
