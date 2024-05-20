@@ -10,14 +10,24 @@ import (
 	"os"
 )
 
+const (
+	defaultLogServiceUrl = "http://logger-service"
+)
+
 type RequestPayload struct {
 	Action string      `json:"action"`
 	Auth   AuthPayload `json:"auth,omitempty"`
+	Log    LogPayload  `json:"log,omitempty"`
 }
 
 type AuthPayload struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type LogPayload struct {
+	Name string `json:"name"`
+	Data string `json:"data"`
 }
 
 func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +51,8 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	switch rPayload.Action {
 	case "auth":
 		app.authenticate(w, rPayload.Auth)
+	case "log":
+		app.log(w, rPayload.Log)
 	default:
 		app.errorJSON(w, errors.New("unknown action"))
 	}
@@ -50,11 +62,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	jsonData, _ := json.MarshalIndent(a, "", "\t")
 	baseAuthSvURL, exists := os.LookupEnv("AUTH_SERVICE_URL")
 	if !exists {
-		log.Println("couldn't get authentication service url from env.")
 		baseAuthSvURL = "http://authentication-service/authenticate"
-		log.Println("using default env instead: ", baseAuthSvURL)
-	} else {
-		baseAuthSvURL = fmt.Sprintf("%s/authenticate", baseAuthSvURL)
 	}
 
 	req, err := http.NewRequest("POST", baseAuthSvURL, bytes.NewBuffer(jsonData))
@@ -100,4 +108,47 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 		log.Println(res.StatusCode, res.Header, res.Body)
 		return
 	}
+}
+
+func (app *Config) log(w http.ResponseWriter, entry LogPayload) {
+	jsonData, err := json.MarshalIndent(entry, "", "\t")
+
+	if err != nil {
+		log.Println("error while indenting json data")
+		app.errorJSON(w, errors.New("error while parsing json data"))
+		return
+	}
+
+	logServiceUrl, ok := os.LookupEnv("LOG_SERVICE_URL")
+	if !ok {
+		logServiceUrl = defaultLogServiceUrl
+	}
+
+	req, err := http.NewRequest("POST", logServiceUrl, bytes.NewBuffer(jsonData))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+
+	res, err := client.Do(req)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusAccepted {
+		app.errorJSON(w, err)
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "logged"
+
+	app.writeJSON(w, http.StatusAccepted, payload)
 }

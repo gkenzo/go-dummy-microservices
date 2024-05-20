@@ -18,6 +18,7 @@ services:
       replicas: 1
     environment:
       - AUTH_SERVICE_URL=http://authentication-service
+      - LOG_SERVICE_URL=http://logger-service
     networks:
       - internal-network
 
