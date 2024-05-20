@@ -33,7 +33,7 @@ func render(w http.ResponseWriter, t string) {
 
 	htmlTemplatePath, ok := os.LookupEnv("HTML_TEMPLATES_PATH")
 	if !ok {
-		htmlTemplatePath = "./cmd/web/templates/"
+		htmlTemplatePath = "./templates"
 	}
 
 	partials := []string{
