@@ -8,11 +8,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/gkenzo/go-dummy-microservices/authentication-service/cmd/data"
 	_ "github.com/jackc/pgconn"
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
-
-	"github.com/gkenzo/authentication-service/cmd/data"
 )
 
 type Config struct {

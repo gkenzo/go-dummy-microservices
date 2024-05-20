@@ -1,4 +1,4 @@
-module github.com/gkenzo/authentication-service
+module github.com/gkenzo/go-dummy-microservices/authentication-service
 
 go 1.22.2
 
