@@ -2,6 +2,7 @@ SHELL=cmd.exe
 FRONT_END_BINARY=frontApp.exe
 BROKER_BINARY=brokerApp
 AUTH_BINARY=authApp
+LOG_BINARY=loggerApp
 
 ## up: starts all containers in the background without forcing build
 up:
@@ -10,11 +11,11 @@ up:
 	@echo Docker images started!
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
-up_build: build_broker build_auth
+up_build: build_broker build_auth build_logger
 	@echo Stopping docker images (if running...)
 	docker-compose down
 	@echo Building (when required) and starting docker images...
-	docker-compose up --build -d
+	docker-compose up --build
 	@echo Docker images built and started!
 
 ## down: stop docker compose
@@ -41,6 +42,12 @@ build_broker:
 build_auth:
 	@echo Building auth binary...
 	chdir ..\authentication-service && set GOOS=linux&& set GOARCH=amd64&& set CGO_ENABLED=0 && go build -o ${AUTH_BINARY} ./cmd/api
+	@echo Done!
+
+## build_logger: builds the log binary as a linux executable
+build_logger:
+	@echo Building log binary...
+	chdir ..\logger-service && set GOOS=linux&& set GOARCH=amd64&& set CGO_ENABLED=0 && go build -o ${LOG_BINARY} ./cmd/api
 	@echo Done!
 
 ## build_front: builds the frone end binary

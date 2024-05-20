@@ -65,6 +65,46 @@ services:
     networks:
     - internal-network
 
+  logger-service:
+    build:
+      context: ./../logger-service
+      dockerfile: ./../logger-service/logger-service.dockerfile
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      DB_USER: admin
+      DB_PASSWORD: password
+      DB_URL: mongodb://bd-logger-mongo:27017
+      PORT: 80
+    depends_on:
+      bd-logger-mongo:
+        condition: service_healthy
+    networks:
+    - internal-network
+
+  bd-logger-mongo:
+    image: 'mongo:4.2.16-bionic'
+    ports:
+      - "27017:27017"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      MONGO_INITDB_DATABASE: logs
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - ./db-data/log-service/mongo/:/data/db
+    networks:
+    - internal-network
+    healthcheck:
+      test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
   nginx-proxy:
     container_name: nginx-proxy
     image: nginx:alpine
