@@ -31,7 +31,8 @@ services:
       mode: replicated
       replicas: 1
     environment:
-      DSN: "host=bd-authenticate-postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
+      - DSN=host=bd-authenticate-postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5
+      - LOG_SERVICE_URL=http://logger-service
     networks:
     - internal-network
 
@@ -40,8 +41,8 @@ services:
       context: ./../front-end
       dockerfile: ./../front-end/front-end.dockerfile
     environment:
-      HTML_TEMPLATES_PATH: ./app/cmd/web/templates
-      PORT: 80
+      - HTML_TEMPLATES_PATH=./app/cmd/web/templates
+      - PORT=80
     restart: always
     deploy:
       mode: replicated
@@ -58,9 +59,9 @@ services:
       mode: replicated
       replicas: 1
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: users
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=users
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data
     networks:
@@ -74,10 +75,10 @@ services:
       mode: replicated
       replicas: 1
     environment:
-      DB_USER: admin
-      DB_PASSWORD: password
-      DB_URL: mongodb://bd-logger-mongo:27017
-      PORT: 80
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_URL=mongodb://bd-logger-mongo:27017
+      - PORT=80
     depends_on:
       bd-logger-mongo:
         condition: service_healthy
@@ -86,15 +87,15 @@ services:
 
   bd-logger-mongo:
     image: 'mongo:4.2.16-bionic'
-    ports:
-      - "27017:27017"
+    # ports:
+    #   - "27017:27017"
     deploy:
       mode: replicated
       replicas: 1
     environment:
-      MONGO_INITDB_DATABASE: logs
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
+      - MONGO_INITDB_DATABASE=logs
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
     volumes:
       - ./db-data/log-service/mongo/:/data/db
     networks:
